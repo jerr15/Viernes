@@ -1,999 +1,701 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ficha de Inscripción Estudiantil</title>
-    <!-- Carga de Tailwind CSS para estilos rápidos y responsivos -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Carga de Google Fonts para una tipografía más elegante -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .form-step {
-            display: none;
-        }
-        .form-step.active {
-            display: block;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        input.invalid, select.invalid, textarea.invalid {
-            border-color: #ef4444 !important;
-            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.4) !important;
-        }
-        .progress-bar {
-            transition: width 0.4s ease-in-out;
-        }
-        .modal-overlay {
-            transition: opacity 0.3s ease-in-out;
-        }
-        .modal-content {
-            transition: transform 0.3s ease-in-out;
-        }
-        .custom-select-container {
-            position: relative;
-        }
-        .custom-select-button {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            padding: 0.5rem 0.75rem;
-            font-size: 1rem;
-            line-height: 1.5;
-            color: #4a5568;
-            background-color: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.375rem;
-            cursor: pointer;
-            user-select: none;
-        }
-        .custom-select-options {
-            display: none;
-            position: absolute;
-            z-index: 10;
-            width: 100%;
-            margin-top: 0.25rem;
-            overflow: auto;
-            background-color: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.375rem;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        }
-        .custom-select-options.show {
-            display: block;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agente Viernes - Gemini AI</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; height: 100vh; display: flex; }
+    .sidebar { width: 280px; background: #1e293b; padding: 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    .sidebar h1 { font-size: 20px; color: #38bdf8; }
+    .sidebar p { font-size: 13px; color: #94a3b8; }
+    .sidebar .info { font-size: 13px; color: #94a3b8; line-height: 1.5; }
+    .conv-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin: 4px 0; }
+    .conv-item { padding: 10px 12px; background: #334155; border-radius: 8px; cursor: pointer; font-size: 13px; border: 1px solid transparent; transition: 0.15s; display: flex; justify-content: space-between; align-items: center; }
+    .conv-item:hover { background: #3e4a5c; border-color: #475569; }
+    .conv-item.active { border-color: #38bdf8; background: #1e3a5f; }
+    .conv-item .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    .conv-item .del { color: #ef4444; cursor: pointer; font-size: 16px; padding: 0 4px; opacity: 0; transition: 0.15s; }
+    .conv-item:hover .del { opacity: 1; }
+    .conv-item .del:hover { color: #ff6b6b; }
+    .modal-overlay { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:100;display:none;justify-content:center;align-items:center; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:#1e293b;border-radius:12px;width:90%;max-width:600px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.5); }
+    .modal-header { display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #334155;font-size:16px;font-weight:600;color:#38bdf8; }
+    .modal-close { font-size:24px;cursor:pointer;color:#94a3b8;padding:0 4px; }
+    .modal-close:hover { color:#ef4444; }
+    .modal-body { padding:20px;overflow-y:auto;flex:1; }
+    .modal-body textarea { width:100%;height:350px;padding:12px;border-radius:8px;border:1px solid #475569;background:#0f172a;color:#e2e8f0;font-size:14px;resize:vertical;outline:none;font-family:inherit;line-height:1.5; }
+    .modal-body textarea:focus { border-color:#38bdf8; }
+    .main { flex: 1; display: flex; flex-direction: column; }
+    .chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+    .message { max-width: 80%; padding: 12px 16px; border-radius: 12px; line-height: 1.6; font-size: 14px; }
+    .message p { margin: 0 0 8px 0; }
+    .message p:last-child { margin-bottom: 0; }
+    .message strong { color: #fbbf24; }
+    .message code { background: #1e293b; padding: 2px 6px; border-radius: 4px; font-size: 13px; color: #a78bfa; }
+    .message em { color: #94a3b8; }
+    .user { background: #2563eb; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .assistant { background: #334155; align-self: flex-start; border-bottom-left-radius: 4px; }
+    .assistant.tool-call { background: #1e3a5f; border-left: 3px solid #38bdf8; font-family: monospace; font-size: 13px; }
+    .input-area { padding: 16px 20px; background: #1e293b; display: flex; gap: 12px; align-items: center; }
+    .input-area textarea { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #e2e8f0; font-size: 14px; resize: none; min-height: 20px; max-height: 120px; outline: none; }
+    .input-area textarea:focus { border-color: #38bdf8; }
+    .input-area button { padding: 10px 24px; background: #38bdf8; color: #0f172a; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; transition: 0.2s; }
+    .input-area button:hover { background: #7dd3fc; }
+    .input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .typing { display: flex; gap: 4px; padding: 12px 16px; background: #334155; border-radius: 12px; align-self: flex-start; }
+    .typing span { width: 8px; height: 8px; background: #94a3b8; border-radius: 50%; animation: bounce 1.4s infinite; }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%,80%,100% { transform: translateY(0); } 40% { transform: translateY(-8px); } }
+    pre { background: #0f172a; padding: 12px; border-radius: 8px; overflow-x: auto; margin: 8px 0; font-size: 13px; }
+    code { font-family: 'Cascadia Code', 'Fira Code', monospace; }
+    .config-bar { background: #1e293b; padding: 10px 20px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid #334155; }
+    .config-bar input { flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #e2e8f0; font-size: 13px; outline: none; }
+    .config-bar input:focus { border-color: #38bdf8; }
+    .config-bar label { font-size: 13px; color: #94a3b8; white-space: nowrap; }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .status-dot.online { background: #22c55e; }
+    .status-dot.offline { background: #ef4444; }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 sm:p-12 rounded-2xl shadow-2xl border border-gray-200 max-w-3xl w-full">
-        
-        <div class="text-center mb-8">
-            <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 tracking-tight">
-                Ficha de Inscripción Estudiantil
-            </h1>
-            <p class="text-base text-gray-500 mt-2" id="form-description">
-                Por favor, completa los datos del estudiante.
-            </p>
-        </div>
-
-        <div class="w-full bg-gray-200 rounded-full h-2 mb-8">
-            <div id="progressBar" class="bg-indigo-600 h-2 rounded-full progress-bar"></div>
-        </div>
-
-        <form action="https://script.google.com/macros/s/AKfycbxbf6PPA4FhqmTj7SHa6fVREft47NPGB4ZQ9Z7Lvr8gkzjvbc41tuWzYDTds4bsDEiLfw/exec" method="POST" id="studentForm">
-
-            <div class="space-y-8">
-                <!-- Paso 1: Datos del Estudiante y Opciones -->
-                <div id="step1" class="form-step">
-                    <fieldset class="bg-gray-50/50 p-6 rounded-lg">
-                        <legend class="text-xl font-semibold text-gray-700 mb-4 px-2">Opciones de Ficha</legend>
-                        <div class="space-y-3">
-                            <div class="flex items-center">
-                                <input type="checkbox" id="enableMadre" checked class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-                                <label for="enableMadre" class="ml-3 block text-sm font-medium text-gray-800">Incluir Datos de la Madre</label>
-                            </div>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="enablePadre" checked class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-                                <label for="enablePadre" class="ml-3 block text-sm font-medium text-gray-800">Incluir Datos del Padre</label>
-                            </div>
-                        </div>
-                    </fieldset>
-                    <fieldset class="mt-6 bg-gray-50/50 p-6 rounded-lg">
-                        <legend class="text-xl font-semibold text-gray-700 mb-4 px-2">Datos del Estudiante</legend>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="ano_cursar" class="block text-sm font-medium text-gray-700">Año Escolar:</label>
-                                <select name="ano_cursar" id="ano_cursar" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></select>
-                            </div>
-                            <div>
-                                <label for="anoEsc" class="block text-sm font-medium text-gray-700">Año a Cursar:</label>
-                                <select name="anoEsc" id="anoEsc" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="">Selecciona</option><option value="1°">1°</option><option value="2°">2°</option><option value="3°">3°</option><option value="4°">4°</option><option value="5°">5°</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="nomEst" class="block text-sm font-medium text-gray-700">Nombres:</label>
-                                <input type="text" name="nomEst" id="nomEst" data-required="true" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="50">
-                            </div>
-                            <div>
-                                <label for="apeEst" class="block text-sm font-medium text-gray-700">Apellidos:</label>
-                                <input type="text" name="apeEst" id="apeEst" data-required="true" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="50">
-                            </div>
-                            <div>
-                                <label for="ciEst" class="block text-sm font-medium text-gray-700">Cédula:</label>
-                                <input type="text" name="ciEst" id="ciEst" inputmode="numeric" data-required="true" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="8">
-                            </div>
-                            <div>
-                                <label for="sexoEst" class="block text-sm font-medium text-gray-700">Sexo:</label>
-                                <select name="sexoEst" id="sexoEst" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="">Selecciona</option><option value="M">Masculino</option><option value="F">Femenino</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="fNacEst" class="block text-sm font-medium text-gray-700">Fecha de Nacimiento:</label>
-                                <input type="date" name="fNacEst" id="fNacEst" data-required="true" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                <div id="edadWarning" class="text-red-500 text-sm mt-1 hidden"></div>
-                            </div>
-                            <div>
-                                <label for="edadEst" class="block text-sm font-medium text-gray-700">Edad:</label>
-                                <input type="number" name="edadEst" id="edadEst" readonly class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                            <div>
-                                <label for="lugNacEst" class="block text-sm font-medium text-gray-700">Lugar de Nacimiento:</label>
-                                <input type="text" name="lugNacEst" id="lugNacEst" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div>
-                                <label for="estNacEst" class="block text-sm font-medium text-gray-700">Estado de Nacimiento:</label>
-                                <select name="estNacEst" id="estNacEst" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="">Selecciona un estado</option><option value="Amazonas">Amazonas</option><option value="Anzoátegui">Anzoátegui</option><option value="Apure">Apure</option><option value="Aragua">Aragua</option><option value="Barinas">Barinas</option><option value="Bolívar">Bolívar</option><option value="Carabobo">Carabobo</option><option value="Cojedes">Cojedes</option><option value="Delta Amacuro">Delta Amacuro</option><option value="Distrito Capital">Distrito Capital</option><option value="Falcón">Falcón</option><option value="Guárico">Guárico</option><option value="La Guaira">La Guaira</option><option value="Lara">Lara</option><option value="Mérida">Mérida</option><option value="Miranda">Miranda</option><option value="Monagas">Monagas</option><option value="Nueva Esparta">Nueva Esparta</option><option value="Portuguesa">Portuguesa</option><option value="Sucre">Sucre</option><option value="Táchira">Táchira</option><option value="Trujillo">Trujillo</option><option value="Yaracuy">Yaracuy</option><option value="Zulia">Zulia</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="plantelProc" class="block text-sm font-medium text-gray-700">Plantel de Procedencia:</label>
-                                <input type="text" name="plantelProc" id="plantelProc" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="dirHabEst" class="block text-sm font-medium text-gray-700">Dirección de Habitación:</label>
-                                <textarea name="dirHabEst" id="dirHabEst" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 resize-y" maxlength="110"></textarea>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="enfDisc" class="block text-sm font-medium text-gray-700">Alguna Enfermedad y/o Discapacidad:</label>
-                                <input type="text" name="enfDisc" id="enfDisc" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div>
-                                <label for="corrEst" class="block text-sm font-medium text-gray-700">Correo Electrónico Estudiante:</label>
-                                <input type="email" name="corrEst" id="corrEst" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div>
-                                <label for="estatura" class="block text-sm font-medium text-gray-700">Estatura (cm):</label>
-                                <select name="estatura" id="estatura" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></select>
-                            </div>
-                            <div>
-                                <label for="tCamisa" class="block text-sm font-medium text-gray-700">Talla Camisa:</label>
-                                <select name="tCamisa" id="tCamisa" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="">Selecciona</option><option value="XS">XS</option><option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="tPantalon" class="block text-sm font-medium text-gray-700">Talla Pantalón:</label>
-                                <select name="tPantalon" id="tPantalon" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="">Selecciona</option><option value="28">28</option><option value="30">30</option><option value="32">32</option><option value="34">34</option><option value="36">36</option><option value="38">38</option><option value="40">40</option>
-                                </select>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="actInt" class="block text-sm font-medium text-gray-700">Actividad de Interés:</label>
-                                <input type="text" name="actInt" id="actInt" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div class="md:col-span-2 flex items-center space-x-4">
-                                <label class="block text-sm font-medium text-gray-700">Tiene hermanos en el plantel:</label>
-                                <select name="tieneHerm" id="tieneHerm" class="mt-1 block px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="" selected disabled>Selecciona</option><option value="No">No</option><option value="Sí">Sí</option>
-                                </select>
-                            </div>
-                            <div id="hermanoInfo" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:col-span-2 hidden">
-                                <div>
-                                    <label for="nomHerm" class="block text-sm font-medium text-gray-700">Nombre Hermano:</label>
-                                    <input type="text" name="nomHerm" id="nomHerm" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                                </div>
-                                <div>
-                                    <label for="anoHerm" class="block text-sm font-medium text-gray-700">Año Hermano:</label>
-                                    <select name="anoHerm" id="anoHerm" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                        <option value="">Selecciona</option><option value="1°">1°</option><option value="2°">2°</option><option value="3°">3°</option><option value="4°">4°</option><option value="5°">5°</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </fieldset>
-                </div>
-
-                <!-- Paso 2: Datos Madre -->
-                <div id="step2" class="form-step">
-                    <fieldset class="bg-gray-50/50 p-6 rounded-lg">
-                        <legend class="text-xl font-semibold text-gray-700 mb-4 px-2">Datos de la Madre</legend>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="nomMad" class="block text-sm font-medium text-gray-700">Nombres y Apellidos:</label>
-                                <input type="text" name="nomMad" id="nomMad" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div>
-                                <label for="ciMad" class="block text-sm font-medium text-gray-700">C.I.:</label>
-                                <input type="text" name="ciMad" id="ciMad" inputmode="numeric" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="8">
-                            </div>
-                            <div>
-                                <label for="telHabMad" class="block text-sm font-medium text-gray-700">Teléfono Habitación (NO CELULAR):</label>
-                                <input type="tel" name="telHabMad" id="telHabMad" inputmode="numeric" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="15">
-                            </div>
-                            <div>
-                                <label for="celMad" class="block text-sm font-medium text-gray-700">Celular:</label>
-                                <input type="tel" name="celMad" id="celMad" inputmode="numeric" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="15">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="dirHabMad" class="block text-sm font-medium text-gray-700">Dirección de Habitación:</label>
-                                <textarea name="dirHabMad" id="dirHabMad" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 resize-y" maxlength="110"></textarea>
-                            </div>
-                            <div>
-                                <label for="profMad" class="block text-sm font-medium text-gray-700">Profesión:</label>
-                                <input type="text" name="profMad" id="profMad" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div>
-                                <label for="trabMad" class="block text-sm font-medium text-gray-700">Dónde Trabaja:</label>
-                                <input type="text" name="trabMad" id="trabMad" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div>
-                                <label for="cargoMad" class="block text-sm font-medium text-gray-700">Cargo:</label>
-                                <input type="text" name="cargoMad" id="cargoMad" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="dirTrabMad" class="block text-sm font-medium text-gray-700">Dirección del Trabajo:</label>
-                                <textarea name="dirTrabMad" id="dirTrabMad" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 resize-y" maxlength="110"></textarea>
-                            </div>
-                            <div>
-                                <label for="corrMad" class="block text-sm font-medium text-gray-700">Correo Electrónico Madre:</label>
-                                <input type="email" name="corrMad" id="corrMad" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                        </div>
-                    </fieldset>
-                </div>
-
-                <!-- Paso 3: Datos Padre -->
-                <div id="step3" class="form-step">
-                    <fieldset class="bg-gray-50/50 p-6 rounded-lg">
-                        <legend class="text-xl font-semibold text-gray-700 mb-4 px-2">Datos del Padre</legend>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="nomPad" class="block text-sm font-medium text-gray-700">Nombres y Apellidos:</label>
-                                <input type="text" name="nomPad" id="nomPad" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div>
-                                <label for="ciPad" class="block text-sm font-medium text-gray-700">C.I.:</label>
-                                <input type="text" name="ciPad" id="ciPad" inputmode="numeric" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="8">
-                            </div>
-                            <div>
-                                <label for="telHabPad" class="block text-sm font-medium text-gray-700">Teléfono Habitación (NO CELULAR):</label>
-                                <input type="tel" name="telHabPad" id="telHabPad" inputmode="numeric" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="15">
-                            </div>
-                            <div>
-                                <label for="celPad" class="block text-sm font-medium text-gray-700">Celular:</label>
-                                <input type="tel" name="celPad" id="celPad" inputmode="numeric" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="15">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="dirHabPad" class="block text-sm font-medium text-gray-700">Dirección de Habitación:</label>
-                                <textarea name="dirHabPad" id="dirHabPad" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 resize-y" maxlength="110"></textarea>
-                            </div>
-                            <div>
-                                <label for="profPad" class="block text-sm font-medium text-gray-700">Profesión:</label>
-                                <input type="text" name="profPad" id="profPad" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div>
-                                <label for="trabPad" class="block text-sm font-medium text-gray-700">Dónde Trabaja:</label>
-                                <input type="text" name="trabPad" id="trabPad" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div>
-                                <label for="cargoPad" class="block text-sm font-medium text-gray-700">Cargo:</label>
-                                <input type="text" name="cargoPad" id="cargoPad" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="dirTrabPad" class="block text-sm font-medium text-gray-700">Dirección del Trabajo:</label>
-                                <textarea name="dirTrabPad" id="dirTrabPad" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 resize-y" maxlength="110"></textarea>
-                            </div>
-                            <div>
-                                <label for="corrPad" class="block text-sm font-medium text-gray-700">Correo Electrónico Padre:</label>
-                                <input type="email" name="corrPad" id="corrPad" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                        </div>
-                    </fieldset>
-                </div>
-
-                <!-- Paso 4: Datos del Representante -->
-                <div id="step4" class="form-step">
-                    <fieldset class="bg-gray-50/50 p-6 rounded-lg">
-                        <legend class="text-xl font-semibold text-gray-700 mb-4 px-2">Datos del Representante en el Colegio</legend>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="nomRep" class="block text-sm font-medium text-gray-700">Nombres y Apellidos Representante:</label>
-                                <input type="text" name="nomRep" id="nomRep" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div>
-                                <label for="ciRep" class="block text-sm font-medium text-gray-700">C.I.:</label>
-                                <input type="text" name="ciRep" id="ciRep" inputmode="numeric" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="8">
-                            </div>
-                            <div>
-                                <label for="telHabRep" class="block text-sm font-medium text-gray-700">Teléfono Habitación (NO CELULAR):</label>
-                                <input type="tel" name="telHabRep" id="telHabRep" inputmode="numeric" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="15">
-                            </div>
-                            <div>
-                                <label for="celRep" class="block text-sm font-medium text-gray-700">Celular:</label>
-                                <input type="tel" name="celRep" id="celRep" inputmode="numeric" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="15">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="dirHabRep" class="block text-sm font-medium text-gray-700">Dirección de Habitación:</label>
-                                <textarea name="dirHabRep" id="dirHabRep" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 resize-y" maxlength="110"></textarea>
-                            </div>
-                            <div>
-                                <label for="profRep" class="block text-sm font-medium text-gray-700">Profesión:</label>
-                                <input type="text" name="profRep" id="profRep" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div>
-                                <label for="trabRep" class="block text-sm font-medium text-gray-700">Dónde Trabaja:</label>
-                                <input type="text" name="trabRep" id="trabRep" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div>
-                                <label for="cargoRep" class="block text-sm font-medium text-gray-700">Cargo:</label>
-                                <input type="text" name="cargoRep" id="cargoRep" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="dirTrabRep" class="block text-sm font-medium text-gray-700">Dirección del Trabajo:</label>
-                                <textarea name="dirTrabRep" id="dirTrabRep" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 resize-y" maxlength="110"></textarea>
-                            </div>
-                            <div>
-                                <label for="corrRep" class="block text-sm font-medium text-gray-700">Correo Electrónico Representante:</label>
-                                <input type="email" name="corrRep" id="corrRep" data-required="true" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="100">
-                            </div>
-                            <div>
-                                <label for="parentesco" class="block text-sm font-medium text-gray-700">Parentesco con el Estudiante:</label>
-                                <input type="text" name="parentesco" id="parentesco" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="50">
-                            </div>
-                            <div>
-                                <label for="contEmerg" class="block text-sm font-medium text-gray-700">Contacto de Emergencia (Teléfono):</label>
-                                <input type="tel" name="contEmerg" id="contEmerg" inputmode="numeric" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="15">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="autRetirar" class="block text-sm font-medium text-gray-700">Personas Autorizadas para Retirar al Menor:</label>
-                                <textarea name="autRetirar" id="autRetirar" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 resize-y" maxlength="200"></textarea>
-                            </div>
-                            <div>
-                                <label for="referencia" class="block text-sm font-medium text-gray-700">Referencia:</label>
-                                <input type="text" name="referencia" id="referencia" inputmode="numeric" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="50">
-                            </div>
-                            <!-- CAMPO CANCELADO PERSONALIZADO -->
-                            <div class="md:col-span-2">
-                                <label for="cancelado" class="block text-sm font-medium text-gray-700">Cancelado:</label>
-                                <div class="relative mt-1">
-                                    <div id="cancelado-button" class="flex items-center justify-between w-full px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
-                                        <span class="block truncate">Selecciona</span>
-                                        <svg class="w-5 h-5 ml-2 -mr-1 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fill-rule="evenodd" d="M10 3a.75.75 0 01.53.22l3.5 3.5a.75.75 0 01-1.06 1.06L10 4.81 7.03 7.78a.75.75 0 01-1.06-1.06l3.5-3.5A.75.75 0 0110 3zm-3.72 9.53a.75.75 0 011.06 0L10 15.19l2.97-2.97a.75.75 0 111.06 1.06l-3.5 3.5a.75.75 0 01-1.06 0l-3.5-3.5a.75.75 0 010-1.06z" clip-rule="evenodd" />
-                                        </svg>
-                                    </div>
-                                    <div id="cancelado-options" class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg hidden">
-                                        <ul class="py-1 overflow-auto text-base leading-6 rounded-md shadow-xs max-h-60 focus:outline-none sm:text-sm sm:leading-5">
-                                            <li class="px-3 py-2">
-                                                <label class="flex items-center space-x-3">
-                                                    <input type="checkbox" class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" value="MATRICULA">
-                                                    <span class="font-normal text-gray-700">MATRICULA</span>
-                                                </label>
-                                            </li>
-                                            <li class="px-3 py-2">
-                                                <label class="flex items-center space-x-3">
-                                                    <input type="checkbox" class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" value="MENSUALIDAD">
-                                                    <span class="font-normal text-gray-700">MENSUALIDAD</span>
-                                                </label>
-                                            </li>
-                                            <li class="px-3 py-2">
-                                                <label class="flex items-center space-x-3">
-                                                    <input type="checkbox" class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" value="SEGURO ESCOLAR">
-                                                    <span class="font-normal text-gray-700">SEGURO ESCOLAR</span>
-                                                </label>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <input type="hidden" name="cancelado" id="cancelado">
-                                </div>
-                            </div>
-                            <!-- CAMPOS DE PAGO ORIGINALES -->
-                            <div>
-                                <label for="tipoPago" class="block text-sm font-medium text-gray-700">Tipo de Pago:</label>
-                                <select name="tipoPago" id="tipoPago" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="">Selecciona</option>
-                                    <option value="Abono">Abono</option>
-                                    <option value="Completo">Completo</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="montoPago" class="block text-sm font-medium text-gray-700">Monto:</label>
-                                <input type="text" name="montoPago" id="montoPago" inputmode="numeric" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" maxlength="20">
-                            </div>
-                            <div>
-                                <label for="moneda" class="block text-sm font-medium text-gray-700">Moneda:</label>
-                                <select name="moneda" id="moneda" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="Bolivares">Bolívares</option>
-                                    <option value="Divisas">Divisas</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="bancoPago" class="block text-sm font-medium text-gray-700">Banco:</label>
-                                <select name="bancoPago" id="bancoPago" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="">Selecciona un banco</option>
-                                    <option value="Banco de Venezuela">Banco de Venezuela</option>
-                                    <option value="Banesco">Banesco</option>
-                                    <option value="Mercantil">Mercantil</option>
-                                    <option value="Provincial">Provincial</option>
-                                    <option value="BOD">BOD</option>
-                                    <option value="Bicentenario">Bicentenario</option>
-                                    <option value="Otro">Otro</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="mensualidadCancelada" class="block text-sm font-medium text-gray-700">Mensualidad Cancelada:</label>
-                                <select name="mensualidadCancelada" id="mensualidadCancelada" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="NINGUNO">NINGUNO</option> <!-- Nueva opción -->
-                                    <option value="Enero">Enero</option>
-                                    <option value="Febrero">Febrero</option>
-                                    <option value="Marzo">Marzo</option>
-                                    <option value="Abril">Abril</option>
-                                    <option value="Mayo">Mayo</option>
-                                    <option value="Junio">Junio</option>
-                                    <option value="Julio">Julio</option>
-                                    <option value="Agosto">Agosto</option>
-                                    <option value="Septiembre">Septiembre</option>
-                                    <option value="Octubre">Octubre</option>
-                                    <option value="Noviembre">Noviembre</option>
-                                    <option value="Diciembre">Diciembre</option>
-                                </select>
-                                <!-- TEXTO PEQUEÑO DEBAJO DE MENSUALIDAD CANCELADA -->
-                                <p class="text-xs text-gray-500 mt-1">Solo aplica si se ha cancelado una mensualidad. (SI CANCELÓ MENSUALIDAD ESPECIFICAR QUÉ MES ESTÁ CANCELANDO, DE NO SER ASÍ COLOCAR “NINGUNO”)</p>
-                            </div>
-                            <!-- CAMPO ADJUNTAR IMAGEN (AHORA COMPROBANTE DE PAGO) -->
-                            <div>
-                                <label for="fotoEst" class="block text-sm font-medium text-gray-700">Adjuntar comprobante de pago:</label>
-                                <input type="file" name="fotoEst" id="fotoEst" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-100 file:text-indigo-700 hover:file:bg-indigo-200 transition-colors duration-200 cursor-pointer">
-                                <input type="hidden" name="fotoEstBase64" id="fotoEstBase64">
-                                <img id="imagePreview" src="" alt="Previsualización" class="hidden mt-4 rounded-lg border border-gray-200 w-32 h-32 object-cover">
-                            </div>
-                        </div>
-                    </fieldset>
-                </div>
-            </div>
-        </form>
-
-        <div class="flex justify-between mt-8">
-            <button type="button" id="prevStepBtn" class="hidden flex items-center justify-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg shadow-sm transition-all duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-                Anterior
-            </button>
-            <button type="button" id="nextStepBtn" class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-all duration-200">
-                Siguiente
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
-            </button>
-            <button type="submit" form="studentForm" id="submitForm" class="hidden flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-all duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-                <span class="button-text">Generar Ficha</span>
-                <svg class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-            </button>
-        </div>
-
-        <p id="formStatus" class="mt-6 text-center font-semibold hidden"></p>
+<body>
+  <div class="sidebar">
+    <h1>🤖 Agente Viernes</h1>
+    <p>Agente con herramientas potenciado por <strong>Gemini</strong></p>
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Desconectado</span>
     </div>
-
-    <div id="confirmationModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex justify-center items-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-sm w-full transform scale-95 transition-transform duration-300">
-            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-5">
-                <svg class="h-10 w-10 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-            </div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-3">¡Ficha Generada!</h2>
-            <p class="text-gray-600 mb-6">
-                Hemos enviado los documentos a tu correo. Ya puedes cerrar esta ventana.
-            </p>
-            <button type="button" id="closeModalBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all duration-200">
-                Cerrar
-            </button>
-        </div>
+    <div class="info">
+      Puedo conversar, buscar en internet, calcular, darte el clima y más.
     </div>
+    <div style="font-size:12px;color:#94a3b8;font-weight:600;letter-spacing:0.5px;">CONVERSACIONES</div>
+    <div class="conv-list" id="convList"></div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button onclick="nuevaConversacion()" style="padding:8px;background:#334155;color:#e2e8f0;border:1px solid #475569;border-radius:8px;cursor:pointer;font-size:13px;">+ Nueva conversación</button>
+      <button onclick="abrirAutoaprendizaje()" style="padding:8px;background:#334155;color:#e2e8f0;border:1px solid #475569;border-radius:8px;cursor:pointer;font-size:13px;">📖 Autoaprendizaje</button>
+      <button onclick="abrirTelegram()" style="padding:8px;background:#334155;color:#e2e8f0;border:1px solid #475569;border-radius:8px;cursor:pointer;font-size:13px;">✈️ Telegram</button>
+    </div>
+  </div>
 
-    <script>
-        const studentForm = document.getElementById('studentForm');
-        const formStatus = document.getElementById('formStatus');
-        const documentLink = document.getElementById('documentLink'); 
-        const documentLinkAnchor = document.querySelector('#documentLink a'); 
-        const formDescription = document.getElementById('form-description');
-        const progressBar = document.getElementById('progressBar');
+  <div class="modal-overlay" id="modalOverlay" onclick="cerrarAutoaprendizaje()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span>📖 Autoaprendizaje</span>
+        <span class="modal-close" onclick="cerrarAutoaprendizaje()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p style="color:#94a3b8;font-size:13px;margin-bottom:12px;">
+          Escribe aquí todo lo que quieras que Viernes sepa sobre tu trabajo: procedimientos, precios, formas de trabajo, técnicos, zonas, tips, etc. Esto se guardará automáticamente y Viernes lo usará en todas las conversaciones.
+        </p>
+        <textarea id="autoaprendizajeText" placeholder="Ej: Los precios de instalación son:&#10;- 650Mbps: 30$&#10;- 750Mbps: 40$&#10;- Instalación Flash: 25$&#10;&#10;Para averías de intermitencia, revisar primero:&#10;1. Roseta&#10;2. Fusiones en caja&#10;3. Pigtail&#10;4. ONU de prueba&#10;&#10;Las activaciones se pagan en julio..."></textarea>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button onclick="guardarAutoaprendizaje()" style="flex:1;padding:10px;background:#38bdf8;color:#0f172a;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Guardar</button>
+          <button onclick="cerrarAutoaprendizaje()" style="flex:1;padding:10px;background:#334155;color:#e2e8f0;border:1px solid #475569;border-radius:8px;cursor:pointer;">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        const formSteps = document.querySelectorAll('.form-step');
-        let currentStepIndex = 0;
-        let visibleSteps = [];
+  <div class="modal-overlay" id="modalTelegram" onclick="cerrarTelegram()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span>✈️ Importar de Telegram</span>
+        <span class="modal-close" onclick="cerrarTelegram()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p style="color:#94a3b8;font-size:13px;margin-bottom:12px;">
+          1. Crea un bot en <strong>@BotFather</strong> en Telegram y copia el token<br>
+          2. Pega el token abajo y haz clic en "Conectar"<br>
+          3. Envía la lista de trabajo a tu bot desde Telegram<br>
+          4. Haz clic en "Importar mensajes"
+        </p>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <input type="password" id="telegramToken" placeholder="Token del bot: 123456:ABCdef..." style="flex:1;padding:10px;border-radius:8px;border:1px solid #475569;background:#0f172a;color:#e2e8f0;font-size:13px;outline:none;">
+          <button onclick="guardarTokenTelegram()" style="padding:10px 16px;background:#22c55e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;">Guardar</button>
+        </div>
+        <div id="telegramMessages" style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+          <p style="color:#64748b;font-size:13px;text-align:center;">Conecta tu token y haz clic en "Importar"</p>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button id="btnImportarTelegram" onclick="importarTelegram()" style="flex:1;padding:10px;background:#38bdf8;color:#0f172a;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Importar mensajes</button>
+          <button onclick="cerrarTelegram()" style="padding:10px 16px;background:#334155;color:#e2e8f0;border:1px solid #475569;border-radius:8px;cursor:pointer;">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        const prevStepBtn = document.getElementById('prevStepBtn');
-        const nextStepBtn = document.getElementById('nextStepBtn');
-        const submitFormBtn = document.getElementById('submitForm');
+  <div class="main">
+    <div class="config-bar">
+      <label>API Key:</label>
+      <input type="password" id="apiKeyInput" placeholder="AIzaSy...">
+      <button onclick="guardarApiKey()" style="padding:6px 16px;background:#22c55e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">Guardar</button>
+    </div>
+    <div class="chat" id="chatContainer"></div>
+    <div class="input-area">
+      <textarea id="userInput" rows="1" placeholder="Escribe tu mensaje o pega la lista de trabajo..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMensaje()}" onpaste="setTimeout(detectarLista, 50)"></textarea>
+      <button id="sendBtn" onclick="enviarMensaje()">Enviar</button>
+    </div>
+  </div>
 
-        const enableMadreCheckbox = document.getElementById('enableMadre');
-        const enablePadreCheckbox = document.getElementById('enablePadre');
+  <script>
+    const MODELOS = [
+      'gemini-2.5-flash',
+      'gemini-2.5-flash-lite',
+      'gemini-2.5-pro',
+      'gemini-3.5-flash',
+      'gemini-3.1-flash-lite'
+    ];
 
-        const confirmationModal = document.getElementById('confirmationModal');
-        const closeModalBtn = document.getElementById('closeModalBtn');
+    let localStorageOk = true;
+    try { localStorage.setItem('_test', '1'); localStorage.removeItem('_test'); } catch(e) { localStorageOk = false; }
+    let apiKey = localStorageOk ? (localStorage.getItem('gemini_api_key') || '') : '';
+    let historial = [];
+    let modeloActual = 0;
 
-        const stepDescriptions = {
-            'step1': "Por favor, completa los datos del estudiante y selecciona las secciones opcionales.",
-            'step2': "Ahora, ingresa los datos de la madre.",
-            'step3': "A continuación, ingresa los datos del padre.",
-            'step4': "Finalmente, completa los datos del representante en el colegio."
-        };
+    const systemPrompt = `Eres "Viernes", la IA creada por Tony Stark. Personalidad: genius, sarcástica, carismática, directa, sin rodeos. Hablas español con actitud. Puedes llamar al usuario "jefe", "campeón", "colega".
 
-        function updateVisibleSteps() {
-            visibleSteps = ['step1'];
-            if (enableMadreCheckbox.checked) {
-                visibleSteps.push('step2');
-            }
-            if (enablePadreCheckbox.checked) {
-                visibleSteps.push('step3');
-            }
-            if (document.getElementById('step4')) { 
-                visibleSteps.push('step4');
-            }
-            if (currentStepIndex >= visibleSteps.length) {
-                currentStepIndex = visibleSteps.length - 1;
-            }
-            showCurrentStep();
-            updateProgressBar();
+Eres EXPERTO en fibra óptica FTTH (GPON/EPON). Conoces:
+- ONU/ONT: fallas de intermitencia (por lo general es drop dañado, mala fusión, o roseta mal hecha)
+- Router: configurar, cambiar, problemas de velocidad (WiFi saturado, cableado, equipo viejo)
+- Drop: cable de fibra desde caja hasta casa. Recomendar cambio si está doblado, quebrado o con microcurvaturas
+- Roseta: el punto de terminación interior. Si está mal hecha, rehacer
+- Pigtail: conector que se fusiona a la fibra. Cambiar si está sucio o dañado
+- Fusiones: revisar pérdidas en caja y en casa
+- ONU de prueba: cuando se pone una ONU provisional para diagnosticar
+- Router de prueba: igual, router provisional
+- Instalación nueva (activación): llevar ONU+Router, fusionar, verificar señal en ambos extremos (-8 a -25 dBm ideal), configurar PPPoE/VLAN
+
+CAPACIDAD ESPECIAL: Cuando el usuario te pegue una lista de trabajo (averías y activaciones), debes:
+
+1. **PARSEAR** la lista automáticamente separando averías de activaciones
+2. **ORGANIZAR POR CIUDAD Y ZONA** y **CALCULAR RUTA ÓPTIMA**. Trabajas en el Área Metropolitana Acarigua-Araure (ciudades gemelas, están pegadas):
+
+   **📐 GEOGRAFÍA GENERAL:**
+   - Acarigua y Araure forman una sola mancha urbana (conurbación), separadas por la Av. 13 de Junio
+   - Río Acarigua es una parroquia (pueblo) hacia el oeste, a ~9 km de Araure por la vía principal
+   - La Av. 13 de Junio es la vía principal que conecta Acarigua ↔ Araure
+
+   **📍 ZONAS DE ARAURE (centro-este):**
+   - **Bosques de Camoruco** (micro 1 al 20): urbanización grande al noreste de Araure. Micros bajos (1-8) están más cerca del centro de Araure; micros altos (9-20) hacia el este, más cerca de la salida a San Carlos
+   - **Urb. San José / Villas de San José**: al este de Araure, cerca de Bosques de Camoruco. San José está más al norte, Villas de San José más al sur
+   - **Urb. La Virginia**: al este también, colindante con San José, cerca del Cementerio de Araure
+   - **Colegio de Ingenieros / Clínica Vargas**: sobre Av. 13 de Junio, zona limítrofe entre Acarigua y Araure. La dirección dice "ARAURE"
+   - **Barrio Las Delicias**: sobre Av. 13 de Junio, zona limítrofe. Algunas fuentes lo ubican en Acarigua, otras cerca de Araure
+   - **Prados del Sol / Sector Mercantil**: zona sur de Araure, vía hacia Agua Blanca
+   - **Baraure 1**: sur de Araure, colindante con Prados del Sol
+
+   **📍 ZONAS DE ACARIGUA (norte-oeste):**
+   - **Centro de Acarigua**: alrededor de la Plaza Bolívar, comercial
+   - **Av. 13 de Junio**: avenida principal que conecta Acarigua con Araure
+   - **Urb. Bellas Artes / Calle Simón Díaz (sector 5)**: ACARIGUA (Municipio Páez). Cerca del Politécnico de Portuguesa. NO está en Araure
+   - **Barrio Obrero**: sur de Acarigua
+   - **Las Mercedes**: norte de Acarigua, zona residencial
+   - **Barrio San Vicente**: zona oeste de Acarigua
+   - **Los Cortijos**: cerca de Bellas Artes, en Acarigua
+
+   **📍 ZONAS DE RÍO ACARIGUA (oeste, ~9 km de Araure):**
+   - **Vía Principal / Hotel Río Acarigua**: entrada a Río Acarigua, viniendo desde Araure por la vía principal
+   - **Sector 18 de Mayo**: más adentro de Río Acarigua
+
+   **📏 DISTANCIAS REFERENCIALES:**
+   - Av. 13 de Junio (límite Acarigua-Araure) → Bosques de Camoruco: ~3 km al este
+   - Av. 13 de Junio → Urb. San José: ~3 km al este
+   - Av. 13 de Junio → Prados del Sol: ~3 km al sur
+   - Araure centro → Río Acarigua: ~9 km al oeste
+   - Bosques de Camoruco micro 2 → micro 18: ~2 km
+
+   **REGLAS PARA RUTA ÓPTIMA (UNA SOLA RUTA SECUENCIAL):**
+   - Agrupa TODOS los trabajos de una misma zona antes de saltar a otra
+   - Dentro de Bosques de Camoruco, ordena por micro ascendente
+   - Prioriza: **URGENTE** > Averías normales > Activaciones
+   - RUTA EFICIENTE (sur a norte): Río Acarigua → Araure sur (Prados/Baraure) → Araure centro → Araure este (San José/Virginia/Bosques) → Acarigua (Bellas Artes, centro, etc.)
+   - RUTA EFICIENTE (norte a sur): inversa
+   - Si hay trabajos en Bosques + San José/Virginia, hazlos en el mismo bloque este. Orden sugerido: San José → Virginia → Bosques micros altos → Bosques micros bajos (o viceversa según salida)
+   - Bellas Artes está en ACARIGUA, al norte de Araure. Si tienes trabajos allí, agrégalo al final de la ruta cuando ya estés en Acarigua
+3. **RUTA ÓPTIMA SECUENCIAL**: debes mostrar la ruta como una lista ORDENADA del 1 al N, mezclando averías y activaciones en el orden lógico de visita. NO separar averías por un lado y activaciones por otro en rutas distintas. Ejemplo de formato:
+
+   **🗺️ Ruta recomendada:**
+   1. → Albani Cuicca (Prados del Sol) - Avería
+   2. → Ramon Riveiro (Baraure 1) - Avería
+   3. → Francy Hernández (Bosques micro 7) - Activación
+   4. → Antonio Nadal (Bosques micro 5) - Activación
+   ... etc
+
+4. **RECOMENDACIONES TÉCNICAS**: para cada avería, basado en la descripción, sugerir qué llevar (ONU de prueba, router, pigtail, roseta, fusión) y qué revisar primero
+
+5. **ENLACES WHATSAPP**: para cada cliente, genera un enlace WhatsApp con su número. El formato del enlace debe ser:
+   wa.me/58XXXXXX?text=MENSAJE
+   - Toma el número del cliente, quítale el primer cero y el guión, y ponle 58 delante.
+     Ej: 0416-0839941 → 584160839941
+   - El mensaje debe ser cordial e informar que eres Jesús Rodríguez, técnico de fibra óptica, y que vas a visitarlo para resolver su avería o hacer su activación. Incluye el motivo específico.
+   - Pon el enlace como: [Enviar WhatsApp](wa.me/58XXXXXXXXXX?text=MensajeAqui) con formato markdown link
+
+Para USAR HERRAMIENTAS responde ÚNICAMENTE con este JSON exacto:
+
+{"tool":"nombre","parametros":{...}}
+
+Herramientas:
+- buscar_web: { "consulta": "texto" }
+- calcular: { "expresion": "2+2" }
+- fecha_hora: {}
+- clima: { "ciudad": "nombre" }
+
+NORMAS DE PRESENTACIÓN:
+- Información organizada: viñetas, negritas (**texto**), párrafos cortos
+- Directo al punto, nada de relleno
+- Cuando organices listas de trabajo, usa tablas simples y emojis
+- Resalta lo urgente con 🔴 y lo normal con 🟢`;
+
+    let conversaciones = [];
+    let conversacionActiva = null;
+
+    if (!localStorageOk) {
+      document.querySelector('.sidebar .status-dot').style.background = '#ef4444';
+      document.getElementById('statusText').textContent = '⚠️ localStorage no disponible';
+      document.getElementById('apiKeyInput').placeholder = '❌ Navegador no compatible';
+    } else if (apiKey) {
+      document.getElementById('apiKeyInput').value = apiKey;
+    } else {
+      document.getElementById('apiKeyInput').placeholder = '⚠️ Ingresa tu API Key y presiona Guardar';
+    }
+    actualizarEstado();
+    cargarConversaciones();
+
+    function guardarConversaciones() {
+      localStorage.setItem('viernes_conversaciones', JSON.stringify(conversaciones));
+      if (conversacionActiva) localStorage.setItem('viernes_activa', conversacionActiva);
+      else localStorage.removeItem('viernes_activa');
+    }
+
+    function cargarConversaciones() {
+      try {
+        const guardado = localStorage.getItem('viernes_conversaciones');
+        if (guardado) conversaciones = JSON.parse(guardado);
+        const activaId = localStorage.getItem('viernes_activa');
+        const convo = conversaciones.find(c => c.id === activaId) || conversaciones[conversaciones.length - 1];
+        if (convo) {
+          conversacionActiva = convo.id;
+          historial = convo.historial;
+          historial.forEach(m => {
+            if (m.role === 'user') agregarMensaje('user', m.parts[0].text);
+            if (m.role === 'model') agregarMensaje('assistant', m.parts[0].text);
+          });
+          renderizarLista();
+          return;
+        }
+      } catch(e) {}
+      if (apiKey) {
+        setTimeout(() => {
+          iniciarNuevaConversacion();
+        }, 300);
+      }
+      renderizarLista();
+    }
+
+    function renderizarLista() {
+      const lista = document.getElementById('convList');
+      if (!lista) return;
+      lista.innerHTML = conversaciones.toReversed().map(c => `
+        <div class="conv-item${c.id === conversacionActiva ? ' active' : ''}" onclick="cargarConversacion('${c.id}')">
+          <span class="name">${c.nombre}</span>
+          <span class="del" onclick="event.stopPropagation();eliminarConversacion('${c.id}')">&times;</span>
+        </div>
+      `).join('');
+    }
+
+    function generarNombre() {
+      const d = new Date();
+      const fecha = d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+      const hora = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+      return `${fecha} ${hora}`;
+    }
+
+    function guardarActual() {
+      if (!conversacionActiva || !historial.length) return;
+      const idx = conversaciones.findIndex(c => c.id === conversacionActiva);
+      const datos = { id: conversacionActiva, nombre: generarNombre(), timestamp: Date.now(), historial: [...historial] };
+      if (idx >= 0) conversaciones[idx] = datos;
+      else conversaciones.push(datos);
+      guardarConversaciones();
+    }
+
+    function iniciarNuevaConversacion() {
+      historial = [];
+      conversacionActiva = null;
+      document.getElementById('chatContainer').innerHTML = '';
+      agregarMensaje('assistant', 'Conversación nueva. ¿En qué te ayudo?');
+      renderizarLista();
+    }
+
+    function nuevaConversacion() {
+      if (historial.length) guardarActual();
+      iniciarNuevaConversacion();
+    }
+
+    function cargarConversacion(id) {
+      const convo = conversaciones.find(c => c.id === id);
+      if (!convo) return;
+      if (historial.length) guardarActual();
+      conversacionActiva = id;
+      historial = convo.historial;
+      document.getElementById('chatContainer').innerHTML = '';
+      historial.forEach(m => {
+        if (m.role === 'user') agregarMensaje('user', m.parts[0].text);
+        if (m.role === 'model') agregarMensaje('assistant', m.parts[0].text);
+      });
+      renderizarLista();
+    }
+
+    function eliminarConversacion(id) {
+      if (!confirm('¿Eliminar esta conversación?')) return;
+      conversaciones = conversaciones.filter(c => c.id !== id);
+      if (conversacionActiva === id) {
+        const ultima = conversaciones[conversaciones.length - 1];
+        if (ultima) cargarConversacion(ultima.id);
+        else iniciarNuevaConversacion();
+      }
+      guardarConversaciones();
+      renderizarLista();
+    }
+
+    function guardarApiKey() {
+      apiKey = document.getElementById('apiKeyInput').value.trim();
+      try { localStorage.setItem('gemini_api_key', apiKey); } catch (e) { agregarMensaje('assistant', 'Error: No se pudo guardar en localStorage. Revisa los permisos del navegador.'); return; }
+      actualizarEstado();
+      agregarMensaje('assistant', apiKey ? 'API Key guardada correctamente. Ya no se perderá al recargar.' : 'API Key eliminada');
+    }
+
+    function abrirAutoaprendizaje() {
+      const textarea = document.getElementById('autoaprendizajeText');
+      textarea.value = localStorage.getItem('viernes_autoaprendizaje') || '';
+      document.getElementById('modalOverlay').classList.add('open');
+      textarea.focus();
+    }
+
+    function cerrarAutoaprendizaje() {
+      document.getElementById('modalOverlay').classList.remove('open');
+    }
+
+    function detectarLista() {
+      const input = document.getElementById('userInput');
+      const texto = input.value.trim();
+      if (!texto || texto.length < 50) return;
+      const esLista = /\*AVERÍAS/i.test(texto) || /\*ACTIVACIONES/i.test(texto) ||
+        (texto.includes('URGENTE') && /04\d{2}-?\d{7}/.test(texto)) ||
+        (texto.split('\n').filter(l => /04\d{2}-?\d{6,7}/.test(l)).length >= 3);
+      if (esLista) {
+        input.style.borderColor = '#22c55e';
+        input.style.transition = 'border 0.3s';
+        setTimeout(() => {
+          input.style.borderColor = '';
+          if (document.getElementById('userInput').value.trim() === texto) {
+            apiKey = localStorage.getItem('gemini_api_key') || '';
+            if (apiKey) enviarMensaje();
+          }
+        }, 600);
+      }
+    }
+
+    function guardarAutoaprendizaje() {
+      const texto = document.getElementById('autoaprendizajeText').value.trim();
+      localStorage.setItem('viernes_autoaprendizaje', texto);
+      cerrarAutoaprendizaje();
+      agregarMensaje('assistant', texto ? '📖 Autoaprendizaje guardado. Ya sé eso que me enseñaste.' : '📖 Autoaprendizaje borrado.');
+    }
+
+    function obtenerAutoaprendizaje() {
+      return localStorage.getItem('viernes_autoaprendizaje') || '';
+    }
+
+    const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+
+    function abrirTelegram() {
+      const token = localStorage.getItem('viernes_telegram_token') || '';
+      document.getElementById('telegramToken').value = token;
+      document.getElementById('telegramMessages').innerHTML = '<p style="color:#64748b;font-size:13px;text-align:center;">Conecta tu token y haz clic en "Importar"</p>';
+      document.getElementById('modalTelegram').classList.add('open');
+    }
+
+    function cerrarTelegram() {
+      document.getElementById('modalTelegram').classList.remove('open');
+    }
+
+    function guardarTokenTelegram() {
+      const token = document.getElementById('telegramToken').value.trim();
+      localStorage.setItem('viernes_telegram_token', token);
+      agregarMensaje('assistant', token ? '✈️ Token de Telegram guardado' : '✈️ Token eliminado');
+      cerrarTelegram();
+    }
+
+    async function importarTelegram() {
+      const token = localStorage.getItem('viernes_telegram_token');
+      if (!token) { agregarMensaje('assistant', 'Primero guarda el token del bot'); cerrarTelegram(); return; }
+
+      const btn = document.getElementById('btnImportarTelegram');
+      btn.textContent = 'Importando...';
+      btn.disabled = true;
+
+      try {
+        const url = `https://api.telegram.org/bot${token}/getUpdates`;
+        const r = await fetch(CORS_PROXY + encodeURIComponent(url));
+        if (!r.ok) throw new Error('Error de conexión. Verifica el token.');
+        const data = await r.json();
+        if (!data.ok) throw new Error('Token inválido');
+
+        const msgs = data.result.filter(u => u.message?.text).reverse();
+        const container = document.getElementById('telegramMessages');
+
+        if (!msgs.length) {
+          container.innerHTML = '<p style="color:#fbbf24;font-size:13px;text-align:center;">No hay mensajes. Envíale algo a tu bot desde Telegram y vuelve a importar.</p>';
+          btn.textContent = 'Importar mensajes';
+          btn.disabled = false;
+          return;
         }
 
-        function updateProgressBar() {
-            const progress = ((currentStepIndex + 1) / visibleSteps.length) * 100;
-            progressBar.style.width = `${progress}%`;
-        }
+        container.innerHTML = msgs.map(m => {
+          const fecha = new Date(m.message.date * 1000).toLocaleString('es-ES');
+          const texto = m.message.text.substring(0, 120);
+          return `<div class="conv-item" style="cursor:pointer;" onclick="procesarMensajeTelegram('${m.message.text.replace(/'/g, "\\'")}')">
+            <span class="name" style="white-space:normal;">${fecha} — ${texto}${m.message.text.length > 120 ? '...' : ''}</span>
+          </div>`;
+        }).join('');
 
-        function showCurrentStep() {
-            formSteps.forEach(step => step.classList.remove('active'));
-            const currentStepId = visibleSteps[currentStepIndex];
-            document.getElementById(currentStepId).classList.add('active');
+        container.innerHTML += '<p style="color:#94a3b8;font-size:12px;text-align:center;margin-top:8px;">Haz clic en un mensaje para procesarlo con Viernes</p>';
+      } catch (e) {
+        document.getElementById('telegramMessages').innerHTML = `<p style="color:#ef4444;font-size:13px;text-align:center;">Error: ${e.message}</p>`;
+      }
 
-            formDescription.textContent = stepDescriptions[currentStepId];
+      btn.textContent = 'Importar mensajes';
+      btn.disabled = false;
+    }
 
-            if (currentStepIndex === 0) {
-                prevStepBtn.classList.add('hidden');
-            } else {
-                prevStepBtn.classList.remove('hidden');
-            }
+    function procesarMensajeTelegram(texto) {
+      cerrarTelegram();
+      document.getElementById('userInput').value = texto;
+      document.getElementById('userInput').focus();
+      setTimeout(() => enviarMensaje(), 100);
+    }
 
-            if (currentStepIndex === visibleSteps.length - 1) {
-                nextStepBtn.classList.add('hidden');
-                submitFormBtn.classList.remove('hidden');
-                formStatus.classList.add('hidden');
-            } else {
-                nextStepBtn.classList.remove('hidden');
-                submitFormBtn.classList.add('hidden');
-            }
-            updateProgressBar();
-        }
+    function actualizarEstado() {
+      const dot = document.getElementById('statusDot');
+      const text = document.getElementById('statusText');
+      if (apiKey) {
+        dot.className = 'status-dot online';
+        text.textContent = `API Key configurada (${MODELOS[modeloActual]})`;
+      } else {
+        dot.className = 'status-dot offline';
+        text.textContent = 'Sin API Key';
+      }
+    }
 
-        function validateCurrentStep() {
-            let isValid = true;
-            let firstInvalidField = null;
-
-            formStatus.classList.add('hidden');
-            formStatus.classList.remove('text-red-600');
-
-            const currentStepDiv = document.querySelector('.form-step.active');
-            const requiredFields = currentStepDiv.querySelectorAll('[data-required="true"]');
-
-            requiredFields.forEach(field => {
-                field.classList.remove('invalid');
-                let fieldValue = field.value.trim();
-
-                if (field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fieldValue)) {
-                    isValid = false;
-                    field.classList.add('invalid');
-                    if (!firstInvalidField) firstInvalidField = field;
-                } else if (!fieldValue) {
-                    isValid = false;
-                    field.classList.add('invalid');
-                    if (!firstInvalidField) firstInvalidField = field;
-                }
+    function formatear(texto) {
+      const escape = t => t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const parts = texto.split(/```/g);
+      let html = '';
+      for (let i = 0; i < parts.length; i++) {
+        if (i % 2 === 0) {
+          html += escape(parts[i])
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/`(.+?)`/g, '<code>$1</code>')
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, t, u) => {
+              const href = u.startsWith('wa.me') ? 'https://' + u : u;
+              return '<a href="' + href + '" target="_blank" rel="noopener" style="color:#25D366;font-weight:600;">' + t + '</a>';
             });
+        } else {
+          const lines = parts[i].split('\n');
+          const lang = lines[0].trim();
+          const code = lines.slice(1).join('\n').trim();
+          html += '<pre><code' + (lang ? ' class="lang-' + lang + '"' : '') + '>' + escape(code || parts[i]) + '</code></pre>';
+        }
+      }
+      return html.split(/\n{2,}/).map(p => {
+        p = p.replace(/\n/g, '<br>');
+        p = p.replace(/^[\s-*]\s+/gm, '&nbsp;&nbsp;• ');
+        p = p.replace(/^\d+\.\s+/gm, m => '&nbsp;&nbsp;' + m);
+        return '<p>' + p + '</p>';
+      }).join('');
+    }
 
-            const fNacEstInput = document.getElementById('fNacEst');
-            const edadEstInput = document.getElementById('edadEst');
-            const edadWarning = document.getElementById('edadWarning');
+    function agregarMensaje(rol, texto, esTool = false) {
+      const chat = document.getElementById('chatContainer');
+      const div = document.createElement('div');
+      div.className = `message ${rol}` + (esTool ? ' tool-call' : '');
+      if (rol === 'assistant' && !esTool) {
+        div.innerHTML = formatear(texto);
+      } else {
+        div.textContent = texto;
+      }
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
 
-            if (fNacEstInput && fNacEstInput.closest('.form-step.active')) {
-                const currentAge = parseInt(edadEstInput.value, 10);
-                if (isNaN(currentAge) || currentAge < 10 || currentAge > 18) {
-                    isValid = false;
-                    fNacEstInput.classList.add('invalid');
-                    edadWarning.textContent = 'La edad debe estar entre 10 y 18 años.';
-                    edadWarning.classList.remove('hidden');
-                    if (!firstInvalidField) firstInvalidField = fNacEstInput;
-                } else {
-                    fNacEstInput.classList.remove('invalid');
-                    edadWarning.classList.add('hidden');
-                }
-            }
+    function mostrarTyping() {
+      const chat = document.getElementById('chatContainer');
+      const div = document.createElement('div');
+      div.className = 'typing';
+      div.id = 'typingIndicator';
+      div.innerHTML = '<span></span><span></span><span></span>';
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
 
+    function ocultarTyping() {
+      const el = document.getElementById('typingIndicator');
+      if (el) el.remove();
+    }
 
-            if (!isValid) {
-                formStatus.textContent = 'Por favor, rellena todos los campos obligatorios marcados y corrige los errores.';
-                formStatus.classList.remove('hidden');
-                formStatus.classList.add('text-red-600');
-                if (firstInvalidField) {
-                    firstInvalidField.focus();
-                }
-            }
-            return isValid;
+    const herramientas = {
+      async buscar_web(params) {
+        const q = params.consulta || params;
+        const r = await fetch(`https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`);
+        if (r.ok) {
+          const d = await r.json();
+          const info = [`Título: ${d.title}`];
+          if (d.description) info.push(`Descripción: ${d.description}`);
+          if (d.extract) info.push(`Resumen: ${d.extract}`);
+          if (d.content_urls?.desktop?.page) info.push(`Fuente: ${d.content_urls.desktop.page}`);
+          return info.join('\n\n');
+        }
+        const r2 = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(q)}&format=json`);
+        const d2 = await r2.json();
+        const parts = [];
+        if (d2.Heading) parts.push(`Título: ${d2.Heading}`);
+        if (d2.AbstractText) parts.push(`Resumen: ${d2.AbstractText}`);
+        if (d2.Answer) parts.push(`Respuesta: ${d2.Answer}`);
+        if (d2.AbstractURL) parts.push(`Fuente: ${d2.AbstractURL}`);
+        if (d2.RelatedTopics?.length) {
+          const temas = d2.RelatedTopics.slice(0, 5).map(t => t.Text || t).join('\n');
+          parts.push(`Temas relacionados:\n${temas}`);
+        }
+        return parts.length ? parts.join('\n\n') : `No encontré resultados para "${q}"`;
+      },
+      async calcular(params) {
+        const expr = params.expresion || params;
+        const result = Function('"use strict"; return (' + expr + ')')();
+        return `Operación: ${expr}\nResultado: ${result}`;
+      },
+      async fecha_hora() {
+        const now = new Date();
+        const fecha = now.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const hora = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const zona = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        return `Fecha: ${fecha}\nHora: ${hora}\nZona horaria: ${zona}`;
+      },
+      async clima(params) {
+        const ciudad = params.ciudad || params;
+        const r = await fetch(`https://wttr.in/${encodeURIComponent(ciudad)}?format=%C|%t|%h|%w|%p`);
+        const partes = (await r.text()).split('|');
+        return `Ciudad: ${ciudad}\nClima: ${partes[0] || 'N/A'}\nTemperatura: ${partes[1] || 'N/A'}\nHumedad: ${partes[2] || 'N/A'}\nViento: ${partes[3] || 'N/A'}\nPrecipitación: ${partes[4] || 'N/A'}`;
+      }
+    };
+
+    async function ejecutarTool(toolName, params) {
+      const tool = herramientas[toolName];
+      if (!tool) return `Herramienta "${toolName}" no encontrada`;
+      agregarMensaje('assistant', `Ejecutando ${toolName}...`, true);
+      return await tool(params);
+    }
+
+    async function consultarGemini(mensajes, reintento = 0) {
+      if (!apiKey) throw new Error('API Key no configurada');
+      if (reintento >= MODELOS.length * 2) throw new Error('Todos los modelos agotaron su cuota. Espera unos minutos o usa otra API Key.');
+
+      const model = MODELOS[modeloActual % MODELOS.length];
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+      const body = {
+        system_instruction: { parts: [{ text: systemPrompt + (obtenerAutoaprendizaje() ? '\n\nCONOCIMIENTO APRENDIDO DEL USUARIO:\n' + obtenerAutoaprendizaje() : '') }] },
+        contents: mensajes,
+        generationConfig: { maxOutputTokens: 8192, temperature: 0.8 }
+      };
+
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (r.status === 429 || r.status === 503) {
+        modeloActual++;
+        const espera = Math.min(2000 * Math.pow(2, reintento), 30000);
+        await new Promise(r => setTimeout(r, espera));
+        return consultarGemini(mensajes, reintento + 1);
+      }
+
+      if (!r.ok) {
+        const err = await r.text();
+        throw new Error(`${r.status}: ${err}`);
+      }
+
+      return await r.json();
+    }
+
+    async function enviarMensaje() {
+      const input = document.getElementById('userInput');
+      const texto = input.value.trim();
+      if (!texto) return;
+      if (!apiKey) {
+        apiKey = localStorage.getItem('gemini_api_key') || '';
+        if (!apiKey) {
+          agregarMensaje('assistant', 'Primero configura tu API Key de Gemini en el campo de arriba.');
+          return;
+        }
+      }
+
+      if (!conversacionActiva) {
+        conversacionActiva = 'conv_' + Date.now();
+        const convo = { id: conversacionActiva, nombre: generarNombre(), timestamp: Date.now(), historial: [] };
+        conversaciones.push(convo);
+        renderizarLista();
+      }
+
+      input.value = '';
+      document.getElementById('sendBtn').disabled = true;
+      agregarMensaje('user', texto);
+
+      historial.push({ role: 'user', parts: [{ text: texto }] });
+      guardarConversaciones();
+      mostrarTyping();
+
+      try {
+        let respuesta = await consultarGemini(historial);
+        let textoRespuesta = respuesta.candidates?.[0]?.content?.parts?.[0]?.text || 'No hubo respuesta';
+        ocultarTyping();
+
+        const toolCall = (() => {
+          const match = textoRespuesta.match(/\{"tool":\s*"[^"]+"[^}]*\}/);
+          if (match) try { return JSON.parse(match[0]); } catch(e) { return null; }
+          try { return JSON.parse(textoRespuesta); } catch(e) { return null; }
+        })();
+        if (toolCall?.tool) {
+          const resultado = await ejecutarTool(toolCall.tool, toolCall.parametros || {});
+          historial.push({ role: 'model', parts: [{ text: textoRespuesta }] });
+          historial.push({ role: 'user', parts: [{ text: `Resultado de ${toolCall.tool}: ${resultado}` }] });
+          guardarConversaciones();
+          mostrarTyping();
+          const r2 = await consultarGemini(historial);
+          ocultarTyping();
+          textoRespuesta = r2.candidates?.[0]?.content?.parts?.[0]?.text || 'No hubo respuesta';
         }
 
+        agregarMensaje('assistant', textoRespuesta);
+        historial.push({ role: 'model', parts: [{ text: textoRespuesta }] });
+        guardarConversaciones();
 
-        nextStepBtn.addEventListener('click', () => {
-            if (validateCurrentStep()) {
-                if (currentStepIndex < visibleSteps.length - 1) {
-                    currentStepIndex++;
-                    showCurrentStep();
-                }
-            }
-        });
+      } catch (e) {
+        ocultarTyping();
+        agregarMensaje('assistant', `Error: ${e.message}`);
+        guardarConversaciones();
+      }
 
-        prevStepBtn.addEventListener('click', () => {
-            if (currentStepIndex > 0) {
-                currentStepIndex--;
-                showCurrentStep();
-            }
-        });
-
-        enableMadreCheckbox.addEventListener('change', updateVisibleSteps);
-        enablePadreCheckbox.addEventListener('change', updateVisibleSteps);
-
-        const tieneHermSelect = document.getElementById('tieneHerm');
-        const hermanoInfo = document.getElementById('hermanoInfo');
-
-        function toggleHermanoInfo() {
-            if (tieneHermSelect.value === 'Sí') {
-                hermanoInfo.classList.remove('hidden');
-            } else {
-                hermanoInfo.classList.add('hidden');
-                document.getElementById('nomHerm').value = '';
-                document.getElementById('anoHerm').value = '';
-            }
-        }
-
-        tieneHermSelect.addEventListener('change', toggleHermanoInfo);
-        toggleHermanoInfo();
-
-        function populateAnoCursar() {
-            const selectElement = document.getElementById('ano_cursar');
-            const currentYear = new Date().getFullYear();
-            selectElement.innerHTML = '';
-            const defaultOption = document.createElement('option');
-            defaultOption.value = "";
-            defaultOption.textContent = "Selecciona un año";
-            selectElement.appendChild(defaultOption);
-
-            for (let i = 0; i < 10; i++) {
-                const startYear = currentYear + i;
-                const endYear = startYear + 1;
-                const option = document.createElement('option');
-                option.value = `${startYear}-${endYear}`;
-                option.textContent = `${startYear}-${endYear}`;
-                selectElement.appendChild(option);
-            }
-        }
-        populateAnoCursar();
-
-        function populateEstatura() {
-            const selectElement = document.getElementById('estatura');
-            selectElement.innerHTML = '<option value="">Selecciona</option>';
-            for (let i = 100; i <= 200; i += 5) {
-                const option = document.createElement('option');
-                option.value = i;
-                option.textContent = `${i} cm`;
-                selectElement.appendChild(option);
-            }
-        }
-        populateEstatura();
-
-        const fNacEstInput = document.getElementById('fNacEst');
-        const edadEstInput = document.getElementById('edadEst');
-        const edadWarning = document.getElementById('edadWarning');
-
-        fNacEstInput.addEventListener('change', () => {
-            const birthDateStr = fNacEstInput.value;
-            if (!birthDateStr) {
-                edadEstInput.value = '';
-                edadWarning.classList.add('hidden');
-                fNacEstInput.classList.remove('invalid');
-                return;
-            }
-
-            const birthDate = new Date(birthDateStr);
-            if (isNaN(birthDate.getTime())) {
-                edadEstInput.value = '';
-                edadWarning.textContent = 'Fecha inválida.';
-                edadWarning.classList.remove('hidden');
-                fNacEstInput.classList.add('invalid');
-                return;
-            }
-
-            const today = new Date();
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const monthDiff = today.getMonth() - birthDate.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
-            }
-
-            edadEstInput.value = age >= 0 ? age : '';
-
-            if (age < 10 || age > 18) {
-                edadWarning.textContent = 'La edad debe estar entre 10 y 18 años.';
-                edadWarning.classList.remove('hidden');
-                fNacEstInput.classList.add('invalid');
-            } else {
-                edadWarning.classList.add('hidden');
-                fNacEstInput.classList.remove('invalid');
-            }
-        });
-
-        // Function to convert input value to uppercase
-        function convertToUppercase(event) {
-            this.value = this.value.toUpperCase();
-            // Remove invalid class on input if it's now valid
-            if (this.value.trim() !== '') {
-                this.classList.remove('invalid');
-            }
-        }
-
-        // Functions for specific input restrictions (kept for consistency with previous versions)
-        function restrictToNumbers(event) {
-            this.value = this.value.replace(/[^0-9]/g, '');
-            if (this.value.trim() !== '') {
-                this.classList.remove('invalid');
-            }
-        }
-
-        function restrictToLetters(event) {
-            this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
-            if (this.value.trim() !== '') {
-                this.classList.remove('invalid');
-            }
-        }
-
-        function restrictToAlphanumericSpecial(event) {
-            this.value = this.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s.,-]/g, '');
-            if (this.value.trim() !== '') {
-                this.classList.remove('invalid');
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Add uppercase conversion to all relevant text inputs and textareas
-            document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea').forEach(field => {
-                // Exclude date and number inputs as they don't handle text like others
-                if (field.type !== 'date' && field.type !== 'number') {
-                    field.addEventListener('input', convertToUppercase);
-                }
-            });
-
-            // Prevent line breaks in text, tel, and email inputs
-            document.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"]').forEach(field => {
-                field.addEventListener('keydown', (event) => {
-                    if (event.key === 'Enter') {
-                        event.preventDefault();
-                    }
-                });
-            });
-
-            // Specific input restrictions (from previous code)
-            document.getElementById('ciEst').addEventListener('input', restrictToNumbers);
-            document.getElementById('ciMad').addEventListener('input', restrictToNumbers);
-            document.getElementById('ciPad').addEventListener('input', restrictToNumbers);
-            document.getElementById('ciRep').addEventListener('input', restrictToNumbers);
-            document.getElementById('telHabMad').addEventListener('input', restrictToNumbers);
-            document.getElementById('celMad').addEventListener('input', restrictToNumbers);
-            document.getElementById('telHabPad').addEventListener('input', restrictToNumbers);
-            document.getElementById('celPad').addEventListener('input', restrictToNumbers);
-            document.getElementById('telHabRep').addEventListener('input', restrictToNumbers);
-            document.getElementById('celRep').addEventListener('input', restrictToNumbers);
-            document.getElementById('contEmerg').addEventListener('input', restrictToNumbers);
-            document.getElementById('referencia').addEventListener('input', restrictToNumbers);
-            document.getElementById('montoPago').addEventListener('input', restrictToNumbers);
-            // Note: nomEst, apeEst, lugNacEst etc. already have the uppercase conversion via the general selector above.
-            // These specific restrictToLetters/AlphanumericSpecial will still apply their character filtering.
-            document.getElementById('plantelProc').addEventListener('input', restrictToAlphanumericSpecial);
-            document.getElementById('enfDisc').addEventListener('input', restrictToAlphanumericSpecial);
-            document.getElementById('actInt').addEventListener('input', restrictToAlphanumericSpecial);
-            document.getElementById('trabMad').addEventListener('input', restrictToAlphanumericSpecial);
-            document.getElementById('trabPad').addEventListener('input', restrictToAlphanumericSpecial);
-            document.getElementById('trabRep').addEventListener('input', restrictToAlphanumericSpecial);
-        });
-
-        const fotoEstInput = document.getElementById('fotoEst');
-        const fotoEstBase64Input = document.getElementById('fotoEstBase64');
-        const imagePreview = document.getElementById('imagePreview');
-
-        fotoEstInput.addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    imagePreview.src = e.target.result;
-                    imagePreview.classList.remove('hidden');
-                    fotoEstBase64Input.value = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            } else {
-                imagePreview.src = '';
-                imagePreview.classList.add('hidden');
-                fotoEstBase64Input.value = '';
-            }
-        });
-
-        studentForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-
-            if (!validateCurrentStep()) {
-                return;
-            }
-
-            const ciEst = document.getElementById('ciEst').value;
-            const ano_cursar = document.getElementById('ano_cursar').value;
-
-            // Show loading animation
-            const buttonText = submitFormBtn.querySelector('.button-text');
-            const spinner = submitFormBtn.querySelector('.animate-spin');
-            buttonText.classList.add('hidden');
-            spinner.classList.remove('hidden');
-            submitFormBtn.disabled = true;
-            prevStepBtn.disabled = true;
-            formStatus.textContent = 'Verificando estudiante...';
-            formStatus.classList.remove('hidden', 'text-green-600', 'text-red-600');
-            formStatus.classList.add('text-gray-800');
-
-            // Check if student exists using JSONP
-            const script = document.createElement('script');
-            const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-            window[callbackName] = function(data) {
-                document.body.removeChild(script);
-                delete window[callbackName];
-
-                if (data.exists) {
-                    formStatus.textContent = 'Este estudiante ya está inscrito en el año escolar seleccionado.';
-                    formStatus.classList.add('text-red-600');
-                    buttonText.classList.remove('hidden');
-                    spinner.classList.add('hidden');
-                    submitFormBtn.disabled = false;
-                    prevStepBtn.disabled = false;
-                    return;
-                }
-
-                // Proceed with form submission
-                submitForm();
-            };
-
-            script.src = studentForm.action.replace('/exec', '/gexec') + `?action=checkStudent&ciEst=${ciEst}&ano_cursar=${ano_cursar}&callback=${callbackName}`;
-            document.body.appendChild(script);
-        });
-
-        async function submitForm() {
-            formStatus.textContent = 'Generando ficha... Por favor, espera.';
-
-            try {
-                const response = await fetch(studentForm.action, {
-                    method: 'POST',
-                    body: new FormData(studentForm)
-                });
-
-                const data = await response.json();
-
-                if (data.result === 'success') {
-                    confirmationModal.classList.remove('opacity-0', 'pointer-events-none');
-                    confirmationModal.querySelector('.transform').classList.remove('scale-95');
-                } else {
-                    formStatus.textContent = `Error: ${data.error || 'Hubo un problema.'}`;
-                    formStatus.classList.add('text-red-600');
-                    submitFormBtn.disabled = false;
-                    prevStepBtn.disabled = false;
-                    const buttonText = submitFormBtn.querySelector('.button-text');
-                    const spinner = submitFormBtn.querySelector('.animate-spin');
-                    buttonText.classList.remove('hidden');
-                    spinner.classList.add('hidden');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                formStatus.textContent = 'Error de conexión.';
-                formStatus.classList.add('text-red-600');
-                submitFormBtn.disabled = false;
-                prevStepBtn.disabled = false;
-                const buttonText = submitFormBtn.querySelector('.button-text');
-                const spinner = submitFormBtn.querySelector('.animate-spin');
-                buttonText.classList.remove('hidden');
-                spinner.classList.add('hidden');
-            }
-        }
-
-        closeModalBtn.addEventListener('click', () => {
-            confirmationModal.classList.add('opacity-0', 'pointer-events-none');
-            confirmationModal.querySelector('.transform').classList.add('scale-95');
-            studentForm.reset();
-            currentStepIndex = 0;
-            updateVisibleSteps();
-            showCurrentStep();
-            formStatus.classList.add('hidden');
-            imagePreview.src = '';
-            imagePreview.classList.add('hidden');
-            submitFormBtn.disabled = false;
-            prevStepBtn.disabled = false;
-
-            const buttonText = submitFormBtn.querySelector('.button-text');
-            const spinner = submitFormBtn.querySelector('.animate-spin');
-            buttonText.classList.remove('hidden');
-            spinner.classList.add('hidden');
-        });
-
-        updateVisibleSteps();
-        showCurrentStep();
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const cancelButton = document.getElementById('cancelado-button');
-            const cancelOptions = document.getElementById('cancelado-options');
-            const canceladoInput = document.getElementById('cancelado');
-            const cancelCheckboxes = cancelOptions.querySelectorAll('input[type="checkbox"]');
-            const cancelButtonText = cancelButton.querySelector('span');
-
-            cancelButton.addEventListener('click', () => {
-                cancelOptions.classList.toggle('hidden');
-            });
-
-            const updateCanceladoValue = () => {
-                const selectedValues = [];
-                const selectedLabels = [];
-                cancelCheckboxes.forEach(checkbox => {
-                    if (checkbox.checked) {
-                        selectedValues.push(checkbox.value);
-                        selectedLabels.push(checkbox.nextElementSibling.textContent);
-                    }
-                });
-                canceladoInput.value = selectedValues.join(', ');
-                if (selectedLabels.length > 0) {
-                    cancelButtonText.textContent = selectedLabels.join(', ');
-                } else {
-                    cancelButtonText.textContent = 'Selecciona';
-                }
-            };
-
-            cancelCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', updateCanceladoValue);
-            });
-
-            document.addEventListener('click', (event) => {
-                if (!cancelButton.contains(event.target) && !cancelOptions.contains(event.target)) {
-                    cancelOptions.classList.add('hidden');
-                }
-            });
-        });
-    </script>
+      document.getElementById('sendBtn').disabled = false;
+      input.focus();
+    }
+  </script>
 </body>
 </html>
-
-
-
