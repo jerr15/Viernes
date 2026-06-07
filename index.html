@@ -8,6 +8,23 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; height: 100vh; display: flex; }
     .sidebar { width: 280px; background: #1e293b; padding: 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    .menu-btn { display:none;position:fixed;top:10px;left:10px;z-index:50;width:36px;height:36px;border-radius:8px;background:#1e293b;border:1px solid #475569;color:#e2e8f0;font-size:18px;cursor:pointer;align-items:center;justify-content:center; }
+    .sidebar-overlay { display:none; }
+    @media (max-width: 768px) {
+      .menu-btn { display:flex; }
+      .sidebar { position:fixed;top:0;left:-300px;width:280px;height:100vh;z-index:40;transition:left 0.3s ease; }
+      .sidebar.open { left:0; }
+      .sidebar-overlay.open { display:block;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:39; }
+      .message { max-width:90% !important; font-size:13px !important; }
+      .chat { padding:12px !important; }
+      .input-area { padding:10px 12px !important; gap:8px !important; }
+      .input-area textarea { font-size:13px !important; padding:10px !important; }
+      .input-area button { padding:8px 16px !important; font-size:13px !important; }
+      .config-bar { flex-wrap:wrap; gap:6px; padding:8px 12px !important; }
+      .config-bar input { font-size:12px !important; min-width:120px; }
+      .modal { width:95% !important; max-height:85vh !important; }
+      .modal-body textarea { height:200px !important; }
+    }
     .sidebar h1 { font-size: 20px; color: #38bdf8; }
     .sidebar p { font-size: 13px; color: #94a3b8; }
     .sidebar .info { font-size: 13px; color: #94a3b8; line-height: 1.5; }
@@ -62,7 +79,9 @@
   </style>
 </head>
 <body>
-  <div class="sidebar">
+  <button class="menu-btn" id="menuBtn" onclick="toggleSidebar()">☰</button>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  <div class="sidebar" id="sidebar">
     <h1>🤖 Agente Viernes</h1>
     <p>Agente con herramientas potenciado por <strong>Gemini</strong></p>
     <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
@@ -341,6 +360,7 @@ NORMAS DE PRESENTACIÓN:
       if (!convo) return;
       if (historial.length) guardarActual();
       conversacionActiva = id;
+      toggleSidebar();
       historial = convo.historial;
       document.getElementById('chatContainer').innerHTML = '';
       historial.forEach(m => {
@@ -478,6 +498,11 @@ NORMAS DE PRESENTACIÓN:
       document.getElementById('userInput').value = texto;
       document.getElementById('userInput').focus();
       setTimeout(() => enviarMensaje(), 100);
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
     }
 
     function actualizarEstado() {
