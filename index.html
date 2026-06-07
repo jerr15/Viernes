@@ -235,25 +235,18 @@ CAPACIDAD ESPECIAL: Cuando el usuario te pegue una lista de trabajo (averías y 
    - RUTA EFICIENTE (norte a sur): inversa
    - Si hay trabajos en Bosques + San José/Virginia, hazlos en el mismo bloque este. Orden sugerido: San José → Virginia → Bosques micros altos → Bosques micros bajos (o viceversa según salida)
    - Bellas Artes está en ACARIGUA, al norte de Araure. Si tienes trabajos allí, agrégalo al final de la ruta cuando ya estés en Acarigua
-3. **RUTA ÓPTIMA SECUENCIAL**: debes mostrar la ruta como una lista ORDENADA del 1 al N, mezclando averías y activaciones en el orden lógico de visita. NO separar averías por un lado y activaciones por otro en rutas distintas. Ejemplo de formato:
+3. **INVESTIGA LAS FALLAS EN INTERNET**: Cuando te den una lista de trabajos, primero identifica los tipos de falla (intermitencia, velocidad baja, sin servicio, configurar router, etc.). Para cada tipo de falla, usa la herramienta **buscar_web** para investigar causas y soluciones comunes en fibra óptica FTTH. Luego combina esa información con el autoaprendizaje del usuario para dar sugerencias específicas y actualizadas por cliente.
+4. **RUTA ÓPTIMA SECUENCIAL**: muestra la ruta como UNA SOLA lista ordenada del 1 al N. Cada elemento debe incluir: número, nombre, zona, **falla/resumen**, **recomendación técnica** y **enlace WhatsApp**. NO separes en listas distintas. Ejemplo de formato:
 
    **🗺️ Ruta recomendada:**
-   1. → Albani Cuicca (Prados del Sol) - Avería
-   2. → Ramon Riveiro (Baraure 1) - Avería
-   3. → Francy Hernández (Bosques micro 7) - Activación
-   4. → Antonio Nadal (Bosques micro 5) - Activación
-   ... etc
+   1. → Albani Cuicca (Prados del Sur) — Avería: intermitencia, drop dañado — 💡 Llevar ONU de prueba, revisar drop con power meter, probar router Linksys AC1300 — 👉 [WhatsApp](wa.me/584161234567?text=...)
+   2. → Ramón Riveiro (Baraure 1) — Avería: velocidad baja — 💡 Probar con router Linksys AC1300, medir potencia (-16 a -24 ideal), revisar cable CAT5E — 👉 [WhatsApp](wa.me/584167890123?text=...)
+   3. → Francy Hernández (Bosques micro 7) — Activación 650Mbps — 💡 Llevar ONU+Router, configurar en DHCP con IPv6 bridge, verificar señal con power meter — 👉 [WhatsApp](wa.me/584169876543?text=...)
 
-4. **RECOMENDACIONES TÉCNICAS**: para cada avería, basado en la descripción, sugerir qué llevar (ONU de prueba, router, pigtail, roseta, fusión) y qué revisar primero
-
-5. **ENLACES WHATSAPP**: el enlace de WhatsApp debe ir **INCLUIDO dentro de cada elemento de la ruta**, no en una lista aparte. Ejemplo de formato correcto:
-
-   **🗺️ Ruta recomendada:**
-   1. → Albani Cuicca (Prados del Sol) - Avería - 👉 [Enviar WhatsApp](wa.me/584161234567?text=Hola%20Albani...)
-   2. → Ramon Riveiro (Baraure 1) - Avería - 👉 [Enviar WhatsApp](wa.me/584167890123?text=Hola%20Ramon...)
-
-   Para generar el número: quita el primer cero y el guión, pon 58 delante.
-   Ej: 0416-0839941 → 584160839941
+   Para cada elemento incluye SIEMPRE:
+   - **La falla o motivo** (ej: "intermitencia", "sin servicio", "configurar router", "activación 650Mbps")
+    - **Sugerencia técnica** (basada en la falla: qué llevar, qué revisar primero, qué materiales usar según el autoaprendizaje del usuario. Ej: si dice "intermitencia" → recomendar ONU de prueba y revisar drop; si dice "configurar router" → llevar Linksys AC1300; si dice "sin servicio" → revisar potencia con power meter)
+   - **Enlace WhatsApp** con el número en formato 58XXXXXXXXX
    El mensaje debe ser cordial, presentándote como Jesús Rodríguez, técnico de fibra óptica, indicando el motivo de la visita.
 
 Para USAR HERRAMIENTAS responde ÚNICAMENTE con este JSON exacto:
@@ -679,6 +672,7 @@ NORMAS DE PRESENTACIÓN:
         conversacionActiva = 'conv_' + Date.now();
         const convo = { id: conversacionActiva, nombre: generarNombre(), timestamp: Date.now(), historial: [] };
         conversaciones.push(convo);
+        historial = convo.historial;
         renderizarLista();
       }
 
